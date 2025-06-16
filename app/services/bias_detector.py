@@ -11,7 +11,7 @@ class BiasDetector:
         self.tokenizer_path = Path("app/models/bias_tokenizer")
         self.categories = {
             0: "left",
-            1: "right",
+            1: "right", 
             2: "center",
             3: "sensationalist",
             4: "neutral"

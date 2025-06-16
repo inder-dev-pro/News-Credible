@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File
 from pydantic import BaseModel
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from app.services.image_checker import ImageChecker
 from app.services.video_checker import VideoChecker
 
@@ -11,7 +11,7 @@ video_checker = VideoChecker()
 class MediaVerificationResponse(BaseModel):
     is_authentic: bool
     confidence: float
-    manipulation_type: str | None
+    manipulation_type: Optional[str]
     evidence: List[Dict[str, Any]]
     metadata: Dict[str, Any]
 

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Union, Optional
 from app.services.bias_detector import BiasDetector
 
 router = APIRouter()
@@ -8,7 +8,7 @@ bias_detector = BiasDetector()
 
 class TextInput(BaseModel):
     text: str
-    source_url: str | None = None
+    source_url: Optional[str] = None
 
 class BiasResponse(BaseModel):
     bias_score: float
