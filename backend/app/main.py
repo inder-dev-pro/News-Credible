@@ -5,6 +5,7 @@ import os
 import logging
 from app.routers import content, media_verify, search_factcheck
 from app.services.content_analyzer import ContentAnalyzer
+from fastapi.staticfiles import StaticFiles
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -23,7 +24,7 @@ app = FastAPI(
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, replace with specific origins
+    allow_origins=["http://localhost:8080"],  # In production, replace with specific origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -51,6 +52,9 @@ async def health_check():
 app.include_router(content.router, prefix="/api/v1", tags=["content"])
 app.include_router(media_verify.router, prefix="/api/v1", tags=["media"])
 app.include_router(search_factcheck.router, prefix="/api/v1", tags=["fact-check"])
+
+# Mount static files
+app.mount("/", StaticFiles(directory="static", html=True), name="static")
 
 if __name__ == "__main__":
     import uvicorn
