@@ -10,7 +10,7 @@ google-generativeai==0.3.2
 tensorflow==2.15.0
 tensorflow-hub==0.15.0
 sentence-transformers==2.2.2
-huggingface-hub==0.20.3
+huggingface-hub==0.10.1
 transformers==4.36.2
 torch==2.1.2
 numpy==1.24.3
