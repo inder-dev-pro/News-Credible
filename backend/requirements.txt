@@ -9,6 +9,5 @@ numpy
 tensorflow-hub
 aiohttp
 bs4
-logging
 pathlib
 google-generativeai
