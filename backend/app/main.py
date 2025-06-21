@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 import os
 import logging
 from app.routers import content, media_verify, search_factcheck
-from app.services.content_analyzer import ContentAnalyzer
 from fastapi.staticfiles import StaticFiles
 
 # Configure logging
@@ -29,14 +28,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Initialize content analyzer
-try:
-    content_analyzer = ContentAnalyzer()
-    logger.info("Content analyzer initialized successfully")
-except Exception as e:
-    logger.error(f"Failed to initialize content analyzer: {str(e)}")
-    raise
 
 # Root endpoint
 @app.get("/")
