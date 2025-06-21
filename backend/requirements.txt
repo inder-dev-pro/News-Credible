@@ -8,6 +8,5 @@ Pillow
 numpy
 tensorflow-hub
 aiohttp
-bs4
-pathlib
+beautifulsoup4
 google-generativeai
