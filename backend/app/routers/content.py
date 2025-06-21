@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File
-from typing import Dict, Optional
+from typing import Dict
 from ..services.content_analyzer import ContentAnalyzer
 from pydantic import BaseModel, HttpUrl
 

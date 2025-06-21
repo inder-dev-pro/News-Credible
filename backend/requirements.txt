@@ -1,46 +1,14 @@
 # Core Dependencies
 fastapi
 uvicorn
-python-multipart
 python-dotenv
 pydantic
-google-generativeai
-
-# ML and AI Dependencies
-tensorflow
-tensorflow-hub
-sentence-transformers
-huggingface-hub
-transformers
-torch
-numpy
-opencv-python
-Pillow
-
-# Web Scraping and HTTP
-beautifulsoup4
 requests
+Pillow
+numpy
+tensorflow-hub
 aiohttp
-
-# Utilities
-python-jose
-passlib
-bcrypt
-
-# Testing
-pytest
-pytest-asyncio
-
-# Code Quality
-black
-isort
-flake8
-
-# Additional Dependencies
-imagehash
-newspaper3k
-# For deepfake detection in video_checker
-# DeepFace is used for deepfake detection
-# Use a compatible version for your environment
-# If you encounter issues, check DeepFace docs for dependencies
-DeepFace
+bs4
+logging
+pathlib
+google-generativeai

@@ -1,11 +1,9 @@
-
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/use-toast";
-import { ExternalLink, AlertCircle, CheckCircle, TrendingUp, TrendingDown } from "lucide-react";
+
 
 type AnalysisResult = {
   url: string;
@@ -29,9 +27,12 @@ type AnalysisResult = {
     issues_found: string[];
   };
   summary?: string;
+  truth_score: number;
+  confidence: number;
 };
 
-const apiEndpoint = "/api/analyze-article"; // TODO: Replace with your FastAPI backend endpoint
+const apiEndpoint = "/api/v1/analyze/url";
+// Or use an environment variable for the base URL if you prefer // TODO: Replace with your FastAPI backend endpoint
 
 const ArticleAnalyzerTool = () => {
   const [url, setUrl] = useState("");
@@ -133,166 +134,21 @@ const ArticleAnalyzerTool = () => {
 
       {result && (
         <div className="space-y-6 animate-fade-in">
-          {/* Article Info */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ExternalLink size={20} />
-                Article Information
-              </CardTitle>
+              <CardTitle>Article Analysis</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                {result.title && (
-                  <div>
-                    <span className="font-medium">Title:</span> {result.title}
-                  </div>
-                )}
+              <div>
                 <div>
-                  <span className="font-medium">URL:</span> 
-                  <a 
-                    href={result.url} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline ml-1"
-                  >
-                    {result.url}
-                  </a>
+                  <span className="font-medium">Truth Score:</span> {result.truth_score}
+                </div>
+                <div>
+                  <span className="font-medium">Confidence:</span> {result.confidence}
                 </div>
               </div>
             </CardContent>
           </Card>
-
-          {/* Analysis Results */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Bias Analysis */}
-            {result.bias && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Political Bias</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Badge className={getBiasColor(result.bias.label)}>
-                        {result.bias.label}
-                      </Badge>
-                      <span className="text-sm text-muted-foreground">
-                        {(result.bias.confidence * 100).toFixed(1)}% confidence
-                      </span>
-                    </div>
-                    {result.bias.explanation && (
-                      <p className="text-sm text-muted-foreground">
-                        {result.bias.explanation}
-                      </p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Credibility Score */}
-            {result.credibility && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Credibility</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      {result.credibility.score >= 0.7 ? (
-                        <CheckCircle className="text-green-600" size={20} />
-                      ) : (
-                        <AlertCircle className="text-red-600" size={20} />
-                      )}
-                      <span className={`font-bold ${getCredibilityColor(result.credibility.score)}`}>
-                        {(result.credibility.score * 100).toFixed(0)}%
-                      </span>
-                    </div>
-                    {result.credibility.factors.length > 0 && (
-                      <div>
-                        <p className="text-sm font-medium mb-1">Key Factors:</p>
-                        <ul className="text-sm text-muted-foreground space-y-1">
-                          {result.credibility.factors.map((factor, index) => (
-                            <li key={index}>• {factor}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Sentiment Analysis */}
-            {result.sentiment && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Sentiment</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-2">
-                    {result.sentiment.label === 'positive' ? (
-                      <TrendingUp className="text-green-600" size={20} />
-                    ) : result.sentiment.label === 'negative' ? (
-                      <TrendingDown className="text-red-600" size={20} />
-                    ) : (
-                      <div className="w-5 h-5 rounded-full bg-gray-400" />
-                    )}
-                    <span className={`font-medium ${getSentimentColor(result.sentiment.label)}`}>
-                      {result.sentiment.label}
-                    </span>
-                    <span className="text-sm text-muted-foreground">
-                      ({result.sentiment.score.toFixed(2)})
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Factuality Check */}
-            {result.factuality && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Factuality</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <span className={`font-bold ${getCredibilityColor(result.factuality.score)}`}>
-                        {(result.factuality.score * 100).toFixed(0)}%
-                      </span>
-                      <span className="text-sm text-muted-foreground">
-                        ({result.factuality.claims_verified} claims verified)
-                      </span>
-                    </div>
-                    {result.factuality.issues_found.length > 0 && (
-                      <div>
-                        <p className="text-sm font-medium mb-1 text-red-600">Issues Found:</p>
-                        <ul className="text-sm text-muted-foreground space-y-1">
-                          {result.factuality.issues_found.map((issue, index) => (
-                            <li key={index}>• {issue}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-
-          {/* Summary */}
-          {result.summary && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Analysis Summary</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">{result.summary}</p>
-              </CardContent>
-            </Card>
-          )}
         </div>
       )}
     </div>

@@ -1,29 +1,18 @@
-from typing import Dict, List, Optional, Union
+from typing import Dict
 import requests
 from PIL import Image
-import imagehash
-from transformers import pipeline
-from sentence_transformers import SentenceTransformer
-import tensorflow as tf
-import tensorflow_hub as hub
 import numpy as np
-from langchain_openai import OpenAI
-from langchain.prompts import PromptTemplate
+import tensorflow_hub as hub
 import os
 from io import BytesIO
 from dotenv import load_dotenv
-from urllib.parse import urljoin
 from bs4 import BeautifulSoup
-import openai
-from openai import OpenAI
-import cv2
 import aiohttp
-import asyncio
 import json
 import logging
 from pathlib import Path
-from datetime import datetime
 import google.generativeai as genai
+from fastapi import HTTPException
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
