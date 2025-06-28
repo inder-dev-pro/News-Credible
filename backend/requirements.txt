@@ -10,3 +10,4 @@ tensorflow-hub
 aiohttp
 beautifulsoup4
 google-generativeai
+python-multipart
