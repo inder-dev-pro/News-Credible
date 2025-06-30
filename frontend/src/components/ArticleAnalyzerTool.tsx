@@ -31,7 +31,8 @@ type AnalysisResult = {
   confidence: number;
 };
 
-const apiEndpoint = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL;
+const apiEndpoint = `${API_URL}/api/v1/analyze/url`;
 // Or use an environment variable for the base URL if you prefer // TODO: Replace with your FastAPI backend endpoint
 
 const ArticleAnalyzerTool = () => {
