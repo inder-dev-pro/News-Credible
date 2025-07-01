@@ -45,4 +45,5 @@ app.include_router(search_factcheck.router, prefix="/api/v1", tags=["fact-check"
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+    port = int(os.environ.get("PORT", 8000))  # Use PORT env variable if set, else default to 8000
+    uvicorn.run(app, host="0.0.0.0", port=port) 
