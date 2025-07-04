@@ -13,7 +13,6 @@ import logging
 from pathlib import Path
 import google.generativeai as genai
 from fastapi import HTTPException
-import asyncio
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -80,29 +79,59 @@ class ContentAnalyzer:
     async def _analyze_image(self, image_url: str, caption: str = None) -> Dict:
         """Analyze image content and verify caption accuracy"""
         try:
+            # Check cache first
             cache_key = f"{image_url}:{caption}" if caption else image_url
             if cache_key in self.cache['image_analysis']:
                 return self.cache['image_analysis'][cache_key]
-
+            
+            # Download and process image
             response = requests.get(image_url)
             image = Image.open(BytesIO(response.content))
+            
+            # Convert to RGB if needed
             if image.mode != 'RGB':
                 image = image.convert('RGB')
+            
+            # Resize image to match model's expected input size
             image = image.resize((224, 224), Image.Resampling.LANCZOS)
-            image_array = np.array(image).astype(np.float32) / 255.0
+            
+            # Convert to numpy array and normalize
+            image_array = np.array(image)
+            image_array = image_array.astype(np.float32) / 255.0
             image_array = np.expand_dims(image_array, axis=0)
+            
+            # Get image embeddings and convert to numpy array
             image_embedding = self.image_model(image_array)
             image_embedding_np = image_embedding.numpy()
+            
+            # Use Gemini for image analysis and caption verification
+            prompt = f"""Analyze this image and verify if the caption accurately describes it:
 
-            # Short, optimized Gemini prompts
-            prompt = f"Describe this image. Caption: {caption or 'None'}. Is the caption accurate? Give a confidence score (0-1)."
+Image URL: {image_url}
+Caption: {caption if caption else 'No caption provided'}
+
+Please provide:
+1. A detailed description of what is actually shown in the image
+2. Whether the caption accurately describes the image content
+3. Any potential misrepresentations or misleading elements
+4. The likely context or event shown in the image
+5. A confidence score (0-1) for your analysis"""
+            
             response = self.model.generate_content(prompt)
             analysis = response.text
+            
+            # Perform reverse image search using Gemini
+            reverse_search_prompt = f"""Based on the image content, identify:
+1. The likely original event or context
+2. When this image might have been taken
+3. Any notable landmarks, people, or objects that could help identify the original source
+4. Whether this image appears to be from its original context or if it might be reused/misused
 
-            reverse_search_prompt = f"What is the likely context or event for this image? Any signs of reuse?"
+Image URL: {image_url}"""
+            
             reverse_search_response = self.model.generate_content(reverse_search_prompt)
             reverse_search_analysis = reverse_search_response.text
-
+            
             results = {
                 'embedding': image_embedding_np.tolist(),
                 'caption_verification': analysis,
@@ -110,9 +139,13 @@ class ContentAnalyzer:
                 'image_url': image_url,
                 'caption': caption
             }
+            
+            # Cache results
             self.cache['image_analysis'][cache_key] = results
             self._save_cache()
+            
             return results
+            
         except Exception as e:
             logger.error(f"Error in _analyze_image: {str(e)}")
             raise
@@ -120,47 +153,56 @@ class ContentAnalyzer:
     async def analyze_url(self, url: str) -> Dict:
         """Analyze content from a URL"""
         try:
+            # Initialize results
             results = {
                 'truth_score': 0.0,
                 'confidence': 0.0,
                 'analysis': {},
                 'warnings': []
             }
+            
+            # Fetch content from URL
             async with aiohttp.ClientSession() as session:
                 async with session.get(url) as response:
                     if response.status != 200:
                         raise HTTPException(status_code=response.status, detail="Failed to fetch URL")
                     html = await response.text()
+            
+            # Parse HTML
             soup = BeautifulSoup(html, 'html.parser')
+            
+            # Extract images with their captions
             images = soup.find_all('img')
-            image_results = []
             if images:
-                # Limit to 3 images
-                limited_images = images[:3]
-                tasks = []
-                for img in limited_images:
+                image_results = []
+                for img in images:
                     img_url = img.get('src')
                     if img_url:
-                        caption = img.get('alt', '') or img.get('title', '')
+                        # Get caption from alt text, title, or nearby figcaption
+                        caption = img.get('alt', '')
+                        if not caption:
+                            caption = img.get('title', '')
                         if not caption:
                             figcaption = img.find_next('figcaption')
                             if figcaption:
                                 caption = figcaption.get_text(strip=True)
-                        # Each image analysis has a 100s timeout
-                        tasks.append(asyncio.wait_for(self._analyze_image(img_url, caption), timeout=100))
-                # Run all image analyses in parallel
-                try:
-                    image_results = await asyncio.gather(*tasks, return_exceptions=True)
-                except Exception as e:
-                    logger.warning(f"Image analysis parallelization error: {str(e)}")
-                # Filter out failed analyses
-                image_results = [res for res in image_results if isinstance(res, dict)]
+                        
+                        try:
+                            img_analysis = await self._analyze_image(img_url, caption)
+                            image_results.append(img_analysis)
+                        except Exception as e:
+                            logger.warning(f"Failed to analyze image {img_url}: {str(e)}")
+                
                 if image_results:
                     results['analysis']['images'] = image_results
+            
+            # Calculate overall truth score based on image analysis
             if 'images' in results['analysis']:
                 results['truth_score'] = self._calculate_truth_score(results['analysis'])
                 results['confidence'] = self._calculate_confidence(results['analysis'])
+            
             return results
+            
         except Exception as e:
             logger.error(f"Error in analyze_url: {str(e)}")
             return {"error": str(e), "truth_score": 0.0}
