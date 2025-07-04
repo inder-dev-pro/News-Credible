@@ -22,7 +22,7 @@ app = FastAPI(
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*","https://www.newscredible.tech", "http://localhost:8000","https://news-credible-backend.onrender.com"],  # Allow all origins in production
+    allow_origins=["*","https://www.newscredible.tech", "http://localhost:8000"],  # Allow all origins in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
