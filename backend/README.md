@@ -52,6 +52,30 @@ python database/db_init.py
 uvicorn app.main:app --reload
 ```
 
+## Troubleshooting
+
+### TensorFlow Hub Model Loading Issues
+
+If you encounter errors like:
+```
+Error initializing models: Trying to load a model of incompatible/unknown type
+```
+
+This is typically caused by corrupted TensorFlow Hub cache. To resolve:
+
+1. **Automatic Fix**: The application now automatically clears the cache on startup
+2. **Manual Fix**: Run the cache clearing script:
+```bash
+python scripts/clear_tfhub_cache.py
+```
+
+3. **Alternative**: If the issue persists, the application will fall back to Gemini-only analysis for images
+
+### Environment Variables
+
+Make sure to set the following environment variables:
+- `GOOGLE_API_KEY`: Your Google API key for Gemini integration
+
 ## Usage
 
 ### Text Bias Detection

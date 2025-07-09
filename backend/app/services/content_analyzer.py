@@ -46,6 +46,17 @@ class ContentAnalyzer:
     def _initialize_models(self):
         """Initialize all required ML models"""
         try:
+            # Clear TensorFlow Hub cache to avoid corrupted model issues
+            import tensorflow as tf
+            tf_hub_cache_dir = os.path.expanduser("~/.cache/tfhub_modules")
+            if os.path.exists(tf_hub_cache_dir):
+                import shutil
+                try:
+                    shutil.rmtree(tf_hub_cache_dir)
+                    logger.info("Cleared TensorFlow Hub cache to resolve model loading issues")
+                except Exception as e:
+                    logger.warning(f"Could not clear TensorFlow Hub cache: {str(e)}")
+            
             # Initialize image analysis model with explicit input size
             self.image_model = hub.load('https://tfhub.dev/google/imagenet/mobilenet_v2_130_224/classification/4')
             self.image_input_size = (224, 224)  # Store expected input size
@@ -53,7 +64,27 @@ class ContentAnalyzer:
             logger.info("All models initialized successfully")
         except Exception as e:
             logger.error(f"Error initializing models: {str(e)}")
-            raise
+            # Set a flag to indicate model loading failed
+            self.image_model = None
+            self.image_input_size = (224, 224)
+            logger.warning("Image analysis model failed to load. Image analysis will be limited to Gemini-based analysis only.")
+
+    def is_model_available(self) -> bool:
+        """Check if the TensorFlow model is available for use"""
+        return self.image_model is not None
+
+    def retry_model_loading(self) -> bool:
+        """Retry loading the TensorFlow model if it failed initially"""
+        try:
+            if self.image_model is None:
+                logger.info("Retrying TensorFlow model loading...")
+                self.image_model = hub.load('https://tfhub.dev/google/imagenet/mobilenet_v2_130_224/classification/4')
+                logger.info("TensorFlow model loaded successfully on retry")
+                return True
+            return True
+        except Exception as e:
+            logger.error(f"Failed to load TensorFlow model on retry: {str(e)}")
+            return False
 
     def _initialize_cache(self):
         """Initialize the cache system"""
@@ -101,8 +132,13 @@ class ContentAnalyzer:
             image_array = np.expand_dims(image_array, axis=0)
             
             # Get image embeddings and convert to numpy array
-            image_embedding = self.image_model(image_array)
-            image_embedding_np = image_embedding.numpy()
+            if self.image_model is not None:
+                image_embedding = self.image_model(image_array)
+                image_embedding_np = image_embedding.numpy()
+            else:
+                # Fallback: create a dummy embedding if model is not available
+                image_embedding_np = np.zeros((1, 1000))  # Dummy embedding
+                logger.warning("Using fallback embedding due to model unavailability")
             
             # Use Gemini for image analysis and caption verification
             prompt = f"""Analyze this image and verify if the caption accurately describes it:
