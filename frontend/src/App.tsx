@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import ArticleAnalyzer from "./pages/ArticleAnalyzer";
 import MediaVerifier from "./pages/MediaVerifier";
 import FactCheckLookup from "./pages/FactCheckLookup";
+// import BiasChecker from "./pages/BiasChecker";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/article-analyzer" element={<ArticleAnalyzer />} />
           <Route path="/media-verifier" element={<MediaVerifier />} />
           <Route path="/fact-check-lookup" element={<FactCheckLookup />} />
+          {/* <Route path="/bias-checker" element={<BiasChecker />} /> */}
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
