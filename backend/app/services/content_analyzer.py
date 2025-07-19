@@ -31,7 +31,7 @@ class ContentAnalyzer:
         if not google_api_key:
             raise ValueError("GOOGLE_API_KEY environment variable is not set")
         genai.configure(api_key=google_api_key)
-        self.model = genai.GenerativeModel('gemini-1.5-flash')
+        self.model = genai.GenerativeModel('gemini-2.5-pro')
         
         # Initialize models
         self._initialize_models()

@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
 import logging
-from app.routers import content, media_verify, search_factcheck
+from app.routers import content
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -38,10 +38,8 @@ async def root():
 async def health_check():
     return {"status": "healthy"}
 
-# Include routers
+# Include only the content analyzer router
 app.include_router(content.router, prefix="/api/v1", tags=["content"])
-app.include_router(media_verify.router, prefix="/api/v1", tags=["media"])
-app.include_router(search_factcheck.router, prefix="/api/v1", tags=["fact-check"])
 
 if __name__ == "__main__":
     import uvicorn
